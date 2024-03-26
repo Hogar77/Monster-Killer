@@ -1,19 +1,93 @@
 const ATTACK_VALUE = 10;
-const STRONG_ATACK_VALUE = 17;
-const MONSTER_ATACK_VALUE = 14;
+const STRONG_ATTACK_VALUE = 17;
+const MONSTER_ATTACK_VALUE = 14;
 const HEAL_VALUE = 20;
 
-let chosenMaxLife = 100;
+const MODE_ATTACK = "ATTACK";
+const MODE_STRONG_ATTACK = "STRONG_ATTACK";
+const LOG_EVENT_PLAYER_ATTACK = 'PLAYER_ATTACK';
+const LOG_EVENT_PLAYER_STRONG_ATTACK = 'PLAYER_STRONG_ATTACK';
+const LOG_EVENT_MONSTER_ATTACK = 'MONSTER_ATTACK';
+const LOG_EVENT_PLAYER_HEAL = 'PLAYER_HEAL';
+const LOG_EVENT_GAME_OVER = 'GAME_OVER';
+
+const enteredValue = prompt ("Podesi maksimalan broj životnih poena za vas i za čudovište!",100)
+
+let chosenMaxLife = parseInt(enteredValue);
+
+let battleLog = [];
+
+if (isNaN(chosenMaxLife)|| chosenMaxLife <= 0) {
+  chosenMaxLife=100;
+}
+
 let currentMonsterHealth=chosenMaxLife;
 let currentPlayerHealth=chosenMaxLife;
 let hasBonusLife = true ;
 
 adjustHealthBars (chosenMaxLife);  //funkcija iz vendor.js
 
+function writeToLog (ev, val, monsterHealth, PlayerHealth) {
+  let logEntry;
+  if (ev === LOG_EVENT_PLAYER_ATTACK){
+    logEntry = {
+      event: ev,
+      value: val,
+      target: 'MONSTER',
+      finalMonsterHealtH: monsterHealth,
+      finalPlayerHealth: PlayerHealth
+    };
+  } else if (ev === LOG_EVENT_PLAYER_STRONG_ATTACK){
+    logEntry = {
+      event: ev,
+      value: val,
+      target: 'MONSTER',
+      finalMonsterHealtH: monsterHealth,
+      finalPlayerHealth: PlayerHealth
+    };
+  } else if (ev === LOG_EVENT_MONSTER_ATTACK) {
+    logEntry = {
+      event: ev,
+      value: val,
+      target: 'PLAYER',
+      finalMonsterHealtH: monsterHealth,
+      finalPlayerHealth: PlayerHealth
+    };
+  } else if (ev === LOG_EVENT_PLAYER_HEAL) {
+    logEntry = {
+      event: ev,
+      value: val,
+      target: 'PLAYER',
+      finalMonsterHealtH: monsterHealth,
+      finalPlayerHealth: PlayerHealth
+    };    
+  } else if (ev === LOG_EVENT_GAME_OVER) {
+    logEntry = {
+      event: ev,
+      value: val,
+      finalMonsterHealtH: monsterHealth,
+      finalPlayerHealth: PlayerHealth
+    };
+  }
+  battleLog.push(logEntry);
+}
+
+function reset () {
+  currentMonsterHealth=chosenMaxLife;
+  currentPlayerHealth=chosenMaxLife;
+  resetGame(chosenMaxLife);
+}
+
 function endRound () {
   const initialPlayerHealth=currentPlayerHealth;
-  const playerDamage = dealPlayerDamage(MONSTER_ATACK_VALUE); // funkcija u vendor.js prikazuje umanjen progres bar 
-  currentPlayerHealth -= playerDamage
+  const playerDamage = dealPlayerDamage(MONSTER_ATTACK_VALUE); // funkcija u vendor.js prikazuje umanjen progres bar 
+  currentPlayerHealth -= playerDamage;
+  writeToLog(
+    LOG_EVENT_MONSTER_ATTACK, 
+    playerDamage, 
+    currentMonsterHealth, 
+    currentPlayerHealth
+    );
 
     if (currentPlayerHealth <= 0 && hasBonusLife === true){
       hasBonusLife = false;
@@ -25,41 +99,61 @@ function endRound () {
   
     if(currentMonsterHealth <= 0 && currentPlayerHealth > 0) {
     alert('Ti si pobedio!');
-    } else if (currentPlayerHealth <= 0 && currentMonsterHealth > 0) {
+    writeToLog(
+      LOG_EVENT_GAME_OVER, 
+      'PLAYER WON', 
+      currentMonsterHealth, 
+      currentPlayerHealth
+      );
+        } else if (currentPlayerHealth <= 0 && currentMonsterHealth > 0) {
       alert('Izgubio si!');
-    } else if (currentPlayerHealth <= 0 && currentMonsterHealth <= 0) {
+      writeToLog(
+        LOG_EVENT_GAME_OVER, 
+        'MONSTER WON', 
+        currentMonsterHealth, 
+        currentPlayerHealth
+        );
+        } else if (currentPlayerHealth <= 0 && currentMonsterHealth <= 0) {
       alert('Nije rešeno ko je pobednik! Obojica ste mrtvi!');
+      writeToLog(
+        LOG_EVENT_GAME_OVER, 
+        'A DRAW', 
+        currentMonsterHealth, 
+        currentPlayerHealth
+        );
+        }
+    if(currentPlayerHealth <= 0 || currentMonsterHealth <= 0) {
+      reset();
     }
 }
 
 function attackMonster(modeAttack){
   let maxDamage;
-  if (modeAttack === 'ATTACK') {
+  let logEvent;
+  if (modeAttack === MODE_ATTACK) {
     maxDamage = ATTACK_VALUE;
-  } else if (modeAttack ==='STRONG_ATTACK') {
-    maxDamage = STRONG_ATACK_VALUE;
+    logEvent=LOG_EVENT_PLAYER_ATTACK
+  } else if (modeAttack === MODE_STRONG_ATTACK) {
+    maxDamage = STRONG_ATTACK_VALUE;
+    logEvent=LOG_EVENT_PLAYER_STRONG_ATTACK
   }
   const damage = dealMonsterDamage(maxDamage); // funkcija u vendor.js prikazuje umanjen progres bar 
   currentMonsterHealth -= damage;
+  writeToLog(
+    logEvent, 
+    damage, 
+    currentMonsterHealth, 
+    currentPlayerHealth
+    );
   endRound ();
-  // const playerDamage = dealPlayerDamage(MONSTER_ATACK_VALUE); // funkcija u vendor.js prikazuje umanjen progres bar 
-  // currentPlayerHealth -= playerDamage
-  
-  //   if(currentMonsterHealth <= 0 && currentPlayerHealth > 0) {
-  //   alert('Ti si pobedio!');
-  //   } else if (currentPlayerHealth <= 0 && currentMonsterHealth > 0) {
-  //     alert('Izgubio si!');
-  //   } else if (currentPlayerHealth <= 0 && currentMonsterHealth <= 0) {
-  //     alert('Nije rešeno ko je pobednik! Obojica ste mrtvi!');
-  //   }
 }
 
 function attackHandler () {
-attackMonster ('ATTACK');
+attackMonster (MODE_ATTACK);
 }
 
 function strongAttackHandler (){
-attackMonster ('STRONG_ATTACK')
+attackMonster (MODE_STRONG_ATTACK)
 }
 
 function healPlayerHandler(){
@@ -73,11 +167,23 @@ function healPlayerHandler(){
   
   increasePlayerHealth(healValue);
   currentPlayerHealth += healValue;
+  writeToLog(
+    LOG_EVENT_PLAYER_HEAL, 
+    healValue, 
+    currentMonsterHealth, 
+    currentPlayerHealth
+    );
   endRound ();
   
-
 }
+
+
+function printLogHandler () {
+  console.log(battleLog);
+}
+
 
 attackBtn.addEventListener('click', attackHandler);
 strongAttackBtn.addEventListener('click', strongAttackHandler);
 healBtn.addEventListener('click',healPlayerHandler);
+logBtn.addEventListener('click', printLogHandler);
