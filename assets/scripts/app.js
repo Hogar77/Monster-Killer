@@ -280,8 +280,34 @@ function startCooldownTimer(type) {
 
 
 function printLogHandler () {
-  console.log(battleLog);
-}
+
+  // for(let i=0;i<3;i++){
+  //   console.log('---------');
+  // }
+  // for(let i=0;i<battleLog.length;i++){
+  //   console.log(battleLog[i]);
+  // }
+    // let j=0;
+    // while(j < 3){
+    // console.log('---------');
+    // j++;
+    // }
+    // let j=3;
+    // do{
+    //   console.log('---------');
+    //   j++;
+    // }while(j < 3);
+
+let i=0;
+for(const logEntry of battleLog){
+  console.log(`#${i}`);
+  for(const key in logEntry){
+   console.log(`${key}: ${logEntry[key]}`);
+  //  console.log(key);
+  //  console.log(logEntry[key]);
+  }
+  i++;}
+  }
 
 
 attackBtn.addEventListener('click', attackHandler);
