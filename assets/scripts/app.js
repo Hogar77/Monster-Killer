@@ -303,10 +303,16 @@ for(const logEntry of battleLog){
   console.log(`#${i}`);
   for(const key in logEntry){
    console.log(`${key}: ${logEntry[key]}`);
-  //  console.log(key);
-  //  console.log(logEntry[key]);
   }
   i++;}
+  // const obj = { a: 1, b: 2, c: 3 };
+// for (const key in obj) {
+//     console.log(key); // Ispisuje imena svojstava: a, b, c
+// }
+// const arr = [1, 2, 3];
+// for (const element of arr) {
+//     console.log(element); // Ispisuje vrednosti: 1, 2, 3
+// }
   }
 
 
@@ -314,3 +320,5 @@ attackBtn.addEventListener('click', attackHandler);
 strongAttackBtn.addEventListener('click', strongAttackHandler);
 healBtn.addEventListener('click',healPlayerHandler);
 logBtn.addEventListener('click', printLogHandler);
+
+
